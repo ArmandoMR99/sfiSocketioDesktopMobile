@@ -1,59 +1,46 @@
 let socket;
-const port = 3000;
-let lastTouchX = null; 
-let lastTouchY = null; 
-const threshold = 5;
+let song;
+let bpm = 60; // valor por defecto
+
+function preload() {
+  song = loadSound('/assets/cancion.mp3');
+}
 
 function setup() {
-    createCanvas(400, 400);
-    background(220);
+  createCanvas(windowWidth, windowHeight);
+  textAlign(CENTER, CENTER);
+  textSize(24);
+  fill(255);
 
-    // Conectar al servidor de Socket.IO
-    //let socketUrl = 'http://192.168.1.17:3000';
-    let socketUrl = 'https://supreme-space-eureka-x9wpv75jjpf6gpv-3000.app.github.dev/';
-    socket = io(socketUrl);
+  socket = io(); // conexión automática a la misma URL/puerto del servidor
 
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
+  socket.on('connect', () => {
+    console.log('Conectado al servidor');
+  });
 
-    socket.on('message', (data) => {
-        console.log(`Received message: ${data}`);
-    });
+  socket.on('bpm', (data) => {
+    bpm = data;
+    console.log('BPM recibidos:', bpm);
+    updatePlaybackRate();
+  });
 
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('Socket.IO error:', error);
-    });
+  // Espera a que el usuario toque para iniciar la música (política del navegador)
+  userStartAudio().then(() => {
+    if (!song.isPlaying()) {
+      song.loop();
+    }
+  });
 }
 
 function draw() {
-    background(220);
-    fill(0, 255, 0);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text('Touch to move the circle', width / 2, height / 2);
+  background(30);
+  text(`BPM actuales: ${bpm}`, width / 2, height / 2);
 }
 
-function touchMoved() {
-    if (socket && socket.connected) { 
-        let dx = abs(mouseX - lastTouchX);
-        let dy = abs(mouseY - lastTouchY);
-
-        if (dx > threshold || dy > threshold) {
-            let touchData = {
-                type: 'touch',
-                x: mouseX,
-                y: mouseY
-            };
-            socket.emit('message', JSON.stringify(touchData));
-
-            lastTouchX = mouseX;
-            lastTouchY = mouseY;
-        }
-    }
-    return false;
+function updatePlaybackRate() {
+  // Ajuste proporcional (puedes afinar esto)
+  let rate = map(bpm, 40, 180, 0.5, 2.0, true);
+  console.log(`rate: ${rate}`);
+  
+  //song.rate(rate);
 }

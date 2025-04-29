@@ -1,26 +1,24 @@
 const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
-
 const app = express();
-const server = http.createServer(app); 
-const io = socketIO(server); 
-const port = 3000;
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
 io.on('connection', (socket) => {
-    console.log('New client connected');
-    socket.on('message', (message) => {
-        console.log(`Received message => ${message}`);
-        socket.broadcast.emit('message', message);
-    });
+  console.log('Un cliente conectado');
 
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
+  socket.on('bpm', (data) => {
+    // Reenvía el BPM a todos los demás clientes
+    socket.broadcast.emit('bpm', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado');
+  });
 });
 
-server.listen(port, () => {
-    console.log(`Server is listening on http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+  console.log('Servidor escuchando en puerto', PORT);
 });

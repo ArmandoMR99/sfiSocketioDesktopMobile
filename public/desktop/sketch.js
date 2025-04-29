@@ -1,44 +1,30 @@
+let bpmSlider;
+let bpm = 90;
 let socket;
-let circleX = 200;
-let circleY = 200;
-const port = 3000;
-
 
 function setup() {
-    createCanvas(400, 400);
-    background(220);
+  createCanvas(400, 200);
+  textAlign(CENTER, CENTER);
 
-    //let socketUrl = 'http://localhost:3000';
-    let socketUrl = 'https://supreme-space-eureka-x9wpv75jjpf6gpv-3000.app.github.dev/';
-    socket = io(socketUrl); 
+  // Crear el slider de BPM (60-180)
+  bpmSlider = createSlider(60, 180, 90);
+  bpmSlider.position(20, 60);
+  bpmSlider.style('width', '360px');
 
-    // Evento de conexión exitosa
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
+  socket = io(); // conexión automática
 
-    // Recibir mensaje del servidor
-    socket.on('message', (data) => {
-        console.log(`Received message: ${data}`);
-        let parsedData = JSON.parse(data);
-        if (parsedData.type === 'touch') {
-            circleX = parsedData.x;
-            circleY = parsedData.y;
-        }
-    });    
-
-    // Evento de desconexión
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('Socket.IO error:', error);
-    });
+  // Enviar BPM cada 100ms
+  setInterval(() => {
+    bpm = bpmSlider.value();
+    socket.emit('bpm', bpm);
+  }, 100);
 }
 
 function draw() {
-    background(220);
-    fill(255, 0, 0);
-    ellipse(circleX, circleY, 50, 50);
+  background(30);
+  fill(255);
+  textSize(20);
+  text("Simulación de BPM", width / 2, 20);
+  textSize(32);
+  text(bpmSlider.value() + " LPM", width / 2, 120);
 }
